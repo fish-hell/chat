@@ -12,7 +12,7 @@ firebase.initializeApp(firebaseConfig);
       return;
     }
     else if (inputname) {
-    localStorage.setItem('userName',inputname);
+    localStorage.setItem('userName',inputname.replace('<','&lt').replace('>','&gt;'));
     window.location.reload();
     }
   }
@@ -76,7 +76,7 @@ firebase.initializeApp(firebaseConfig);
     const newMessage = {
       text: format + message.replace('<','&lt').replace('>','&gt;'),
       timestamp: firebase.database.ServerValue.TIMESTAMP,
-      sender: sender.replace('<','&lt').replace('>','&gt;') || "名無し"
+      sender: sender || "名無し"
     };
   
     messagesRef.push(newMessage);
