@@ -76,6 +76,8 @@
       padding: 5px;
       margin-bottom: 10px;
       border-bottom: 1px solid #ddd;
+      max-height: 225px;
+      overflow: auto;
     }
 
     .meta-info {
@@ -96,13 +98,34 @@
       color: black;
       z-index: 100;
     }
+    ::-webkit-scrollbar {
+      width: 5px;
+      height: 12px;
+    }
+
+  ::-webkit-scrollbar-track {
+      background-color: #f1f1f1;
+     border-radius: 10px;
+    }
 
 
+  ::-webkit-scrollbar-thumb {
+     background-color: #0ff7;
+    }
+
+
+  ::-webkit-scrollbar-thumb:hover {
+      background-color: #0ff3;
+    }
+
+  img {
+    height: 200px;
+  }
   </style>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.0/css/all.min.css">
 </head>
 <body>
-  <button class="menu-button" onclick="const inputname = prompt('ユーザー名を入力してください');localStorage.setItem('userName',inputname);window.location.reload();"><i class="fa-solid fa-bars"></i></button>
+  <button class="menu-button" onclick="setUserName()"><i class="fa-solid fa-bars"></i></button>
     <div class="textmenu" id="textmenu">
         <input type="color" list="colors" id="colorinput">
         <datalist id="colors">
@@ -209,181 +232,6 @@
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-  
-<script>
- const firebaseConfig = {
-  apiKey: "AIzaSyDoc6pfRAmaP1JQZ3G-GZ54SdygLE2T-1w",
-  authDomain: "chat-1yen.firebaseapp.com",
-  databaseURL: "https://chat-1yen-default-rtdb.firebaseio.com",
-  projectId: "chat-1yen",
-  storageBucket: "chat-1yen.firebasestorage.app",
-  messagingSenderId: "258677202337",
-  appId: "1:258677202337:web:a869e51ddc776afedebfe0"
-};
-firebase.initializeApp(firebaseConfig);
-
-const messagesRef = firebase.database().ref('messages');
-const usersRef = firebase.database().ref('users');
-
-let userName = "名無し";
-if (localStorage.getItem('userName')) {
-  userName = localStorage.getItem('userName');
-}
-
-let format = '';
-
-function applyText() {
-    const messageInput = document.getElementById('message-input');
-
-    const boldChecked = document.querySelector('input[value="b"]').checked;
-    const italicChecked = document.querySelector('input[value="i"]').checked;
-    const strikethroughChecked = document.querySelector('input[value="s"]').checked;
-    const underlineChecked = document.querySelector('input[value="u"]').checked;
-
-    const fontSize = document.querySelector('input[name="fontsize"]:checked').value;
-
-    let Text1 = '';
-    if (boldChecked) {
-        Text1 = `[b]${Text1}`;
-    }
-    let Text2 = Text1;
-    if (italicChecked) {
-        Text2 = `[i]${Text2}`;
-    }
-    let Text3 = Text2;
-    if (strikethroughChecked) {
-        Text3 = `[s]${Text3}`;
-    }
-    let Text4 = Text3;
-    if (underlineChecked) {
-        Text4 = `[u]${Text4}`;
-    }
-
-    let Text5 = Text4;
-    if (fontSize !== '0') {
-        Text5 = `[${fontSize}]${Text5}`;
-    }
-
-    const chatColor = document.getElementById('colorinput').value;
-    formattedMessage = `[${chatColor}]${Text5}`;
-
-    format = formattedMessage;
-
-    document.getElementById('textmenu').style.display = 'none'
-}
-
-function sendMessage(message, sender) {
-  if (message.trim() === '') {
-    alert('メッセージを入力してください');
-    return;
-  }
-
-  const newMessage = {
-    text: format + message,
-    timestamp: firebase.database.ServerValue.TIMESTAMP,
-    sender: sender || "名無し"
-  };
-
-  messagesRef.push(newMessage);
-}
-
-
-function formatMessage(text) {
-  text = text.replace(/\[b\](.*?)(?=\[|$)/g, '<b>$1</b>');
-  text = text.replace(/\[i\](.*?)(?=\[|$)/g, '<em>$1</em>');
-  text = text.replace(/\[s\](.*?)(?=\[|$)/g, '<s>$1</s>');
-  text = text.replace(/\[u\](.*?)(?=\[|$)/g, '<u>$1</u>');
-  text = text.replace(/\[0\](.*?)(?=\[|$)/g, '<span style="font-size: 1em;">$1</span>');
-  text = text.replace(/\[1\](.*?)(?=\[|$)/g, '<span style="font-size: 1.7em;">$1</span>');
-  text = text.replace(/\[2\](.*?)(?=\[|$)/g, '<span style="font-size: 1.3em;">$1</span>');
-  text = text.replace(/\[3\](.*?)(?=\[|$)/g, '<span style="font-size: 0.7em;">$1</span>');
-  text = text.replace(/\[([a-zA-Z]+|#[0-9a-fA-F]{6})\](.*?)(?=\]|$)/g, '<span style="color:$1">$2</span>');
-
-  return text;
-}
-
-messagesRef.on('child_added', (snapshot) => {
-  const message = snapshot.val();
-  const time = new Date(message.timestamp).toLocaleTimeString();
-
-  const messageElement = document.createElement('div');
-  messageElement.classList.add('message');
-
-  const formattedText = formatMessage(message.text);
-
-
-  const youtubeRegex = /https?:\/\/(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/shorts\/)([a-zA-Z0-9_-]+)/;
-  const youtubeMatch = message.text.match(youtubeRegex);
-  const link = formattedText.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank">$1</a>');
-
-  let content;
-  if (youtubeMatch) {
-    const videoId = youtubeMatch[1];
-    const embedHTML = `${link}<br><iframe width="320" height="180" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen>上記のリンクをタップしてYouTubeに移動します</iframe>`;
-    content = embedHTML;
-  } else {
-    content = link;
-  }
-
-  messageElement.innerHTML = `
-    <div class="meta-info">
-      <span class="sender-name">${message.sender}</span>
-      <span class="timestamp">${time}</span>
-    </div>
-    <div class="text">${content}</div>
-  `;
-
-  document.getElementById('chat-messages').appendChild(messageElement);
-  document.getElementById('chat-messages').scrollTop = document.getElementById('chat-messages').scrollHeight;
-});
-
-
-
-document.getElementById('textmenu-button').addEventListener('click', () => {
-    const textmenu = document.getElementById('textmenu');
-    textmenu.style.display = textmenu.style.display === 'none' || textmenu.style.display === '' ? 'block' : 'none';
-  });
-
-
-document.getElementById('send-button').addEventListener('click', () => {
-  const messageInput = document.getElementById('message-input');
-  const message = messageInput.value;
-  sendMessage(message, userName);
-  messageInput.value = '';
-});
-
-
-document.getElementById('message-input').addEventListener('keydown', (event) => {
-  if (event.key === 'Enter') {
-    const messageInput = document.getElementById('message-input');
-    const message = messageInput.value;
-    sendMessage(message, userName);
-    messageInput.value = '';
-  }
-});
-
-
-function checkLimit() {
-  messagesRef.once('value', (snapshot) => {
-    const messages = snapshot.val();
-    const keys = Object.keys(messages || {});
-
-    if (keys.length > 100) {
-
-      const excessMessages = keys.slice(0, keys.length - 100);
-      excessMessages.forEach((key) => {
-        messagesRef.child(key).remove();
-      });
-    }
-  });
-}
-
-
-messagesRef.on('child_added', () => {
-  checkLimit();
-});
-
-  
-</script>
+  <script src="main.js"></script>
 </body>
 </html>
