@@ -7,7 +7,11 @@ firebase.initializeApp(firebaseConfig);
   
   function setUserName() {
     const inputname = prompt('ユーザー名を入力してください');
-    if (inputname) {
+    if (inputname.length > 30) {
+      alert('名前が長すぎます')
+      return;
+    }
+    else if (inputname) {
     localStorage.setItem('userName',inputname);
     window.location.reload();
     }
@@ -70,9 +74,9 @@ firebase.initializeApp(firebaseConfig);
     document.getElementById('message-input').value = '';
   
     const newMessage = {
-      text: format + message,
+      text: format + message.replace('<','&lt').replace('>','&gt;'),
       timestamp: firebase.database.ServerValue.TIMESTAMP,
-      sender: sender || "名無し"
+      sender: sender.replace('<','&lt').replace('>','&gt;') || "名無し"
     };
   
     messagesRef.push(newMessage);
